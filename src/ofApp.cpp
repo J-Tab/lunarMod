@@ -14,7 +14,7 @@
 //
 void ofApp::setup() {
 
-
+	ofSetFrameRate(60);
 	bWireframe = false;
 	bDisplayPoints = false;
 	bAltKeyDown = false;
@@ -75,6 +75,18 @@ void ofApp::setup() {
 
 void ofApp::update() {
 
+	//Rotate lander using 'a' and 'd' keys
+	if (counterClockwiseRot) {
+		yRotationAngle++;
+	}
+	if (clockwiseRot) {
+		yRotationAngle--;
+	}
+	lander.setRotation(1, yRotationAngle, 0, 1, 0);
+
+	//Update physics movement for the lander
+	landerParticle.integrate();
+	lander.setPosition(landerParticle.position.x,landerParticle.position.y,landerParticle.position.z);
 }
 
 //--------------------------------------------------------------
@@ -215,10 +227,13 @@ void ofApp::keyPressed(int key) {
 		toggleWireframeMode();
 		break;
 	case 'd':     // rotate spacecraft clockwise (about Y (UP) axis)
+		clockwiseRot = true;
 		break;
 	case 'a':     // rotate spacecraft counter-clockwise (about Y (UP) axis)
+		counterClockwiseRot = true;
 		break;
 	case 'w':     // spacecraft thrust UP
+		landerParticle.acceleration.set(0, 10, 0);
 		break;
 	case 's':     // spacefraft thrust DOWN
 		break;
@@ -265,7 +280,13 @@ void ofApp::togglePointsDisplay() {
 void ofApp::keyReleased(int key) {
 
 	switch (key) {
-	
+
+	case 'd':
+		clockwiseRot = false;
+		break;
+	case 'a':
+		counterClockwiseRot = false;
+		break;
 	case OF_KEY_ALT:
 		cam.disableMouseInput();
 		bAltKeyDown = false;
@@ -275,6 +296,8 @@ void ofApp::keyReleased(int key) {
 		break;
 	case OF_KEY_SHIFT:
 		break;
+	case 'w':
+		landerParticle.acceleration.set(0, -.5, 0);
 	default:
 		break;
 

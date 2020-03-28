@@ -32,14 +32,20 @@ class ofApp : public ofBaseApp{
 		void savePicture();
 		void toggleWireframeMode();
 		void togglePointsDisplay();
-		
+		float yRotationAngle = 0;
 		
 		ofEasyCam cam;
 		ofxAssimpModelLoader lander;
+		Particle landerParticle = Particle();
+
 		ofLight light;
 		ofImage backgroundImage;
 		ofCamera *theCam = NULL;
 		ofCamera topCam;
+
+		//rotation variables
+		bool clockwiseRot = false;
+		bool counterClockwiseRot = false;
 
 
 		bool bAltKeyDown;
