@@ -32,7 +32,12 @@ class ofApp : public ofBaseApp{
 		void savePicture();
 		void toggleWireframeMode();
 		void togglePointsDisplay();
+
+		//variable for the rotation of the lander around the y-axis
 		float yRotationAngle = 0;
+
+		//heading vector for lander
+		ofVec3f heading = ofVec3f(0,0,0);
 		
 		ofEasyCam cam;
 		ofxAssimpModelLoader lander;
@@ -43,6 +48,14 @@ class ofApp : public ofBaseApp{
 		ofCamera *theCam = NULL;
 		ofCamera topCam;
 
+		//buttons hits
+		bool upPressed = false;
+		bool downPressed = false;
+		bool leftPressed = false;
+		bool rightPressed = false;
+
+		
+		
 		//rotation variables
 		bool clockwiseRot = false;
 		bool counterClockwiseRot = false;
