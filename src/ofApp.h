@@ -28,6 +28,7 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		void drawAxis(ofVec3f);
+		void drawAxisLander();
 		void initLightingAndMaterials();
 		void savePicture();
 		void toggleWireframeMode();
@@ -35,9 +36,11 @@ class ofApp : public ofBaseApp{
 
 		//variable for the rotation of the lander around the y-axis
 		float yRotationAngle = 0;
+		float headingAcceleration = 3.0;
 
 		//heading vector for lander
 		ofVec3f heading = ofVec3f(0,0,0);
+		ofVec3f headingRot = heading;
 		
 		ofEasyCam cam;
 		ofxAssimpModelLoader lander;
@@ -53,6 +56,8 @@ class ofApp : public ofBaseApp{
 		bool downPressed = false;
 		bool leftPressed = false;
 		bool rightPressed = false;
+		bool wKeyPressed = false;
+		bool sKeyPressed = false;
 
 		
 		

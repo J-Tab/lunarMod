@@ -75,24 +75,56 @@ void ofApp::setup() {
 void ofApp::update() {
 
 	//Heading depending on arrow keys
+	ofVec3f tempVec = ofVec3f(0, 0, 0);
+	//W and S headings
+	if ((wKeyPressed && sKeyPressed) || (!wKeyPressed && !sKeyPressed)) {
+		tempVec.y = -.5;
+	}
+	else if (wKeyPressed) {
+		tempVec.y = 5.0;
+	}
+	else if (sKeyPressed) {
+		tempVec.y = -5;
+	}
 
+	//Up and Down Heading
 	
+	if (upPressed && downPressed) {
+	}
+	else if (upPressed) {
+		tempVec.z = -headingAcceleration;
+	}
+	else if (downPressed) {
+		tempVec.z = headingAcceleration;
+	}
+	//Left and Right Heading
+	if (leftPressed && rightPressed) {
+	}
+	else if (leftPressed) {
+		tempVec.x = -headingAcceleration;
+	}
+	else if (rightPressed) {
+		tempVec.x = headingAcceleration;
+	}
 	
 	
 	//Rotate lander using 'a' and 'd' keys
 	if (counterClockwiseRot) {
-		yRotationAngle=yRotationAngle+.5;
-		heading.rotate(yRotationAngle, ofVec3f(0, 1, 0));
+		yRotationAngle=yRotationAngle+1;
 	}
 	if (clockwiseRot) {
-		yRotationAngle=yRotationAngle-.5;
-		heading.rotate(yRotationAngle, ofVec3f(0, 1, 0));
+		yRotationAngle=yRotationAngle-1;
 	}
-	lander.setRotation(1, yRotationAngle, 0, 1, 0);
+	heading = tempVec.rotate(yRotationAngle, ofVec3f(0, 1, 0));
 	
+	lander.setRotation(1, yRotationAngle, 0, 1, 0);
+	landerParticle.acceleration = heading;
 
 	//Update physics movement for the lander
 	landerParticle.integrate();
+	if (landerParticle.position.y < 0){
+		landerParticle.position.y = 0;
+	}
 	lander.setPosition(landerParticle.position.x,landerParticle.position.y,landerParticle.position.z);
 }
 
@@ -156,8 +188,9 @@ void ofApp::draw() {
 	ofPopMatrix();
 
 	//draw axis
+	drawAxis(ofVec3f(0,0,0));
+	drawAxisLander();
 	drawAxis(heading);
-
 
 	theCam->end();
 
@@ -181,13 +214,34 @@ void ofApp::drawAxis(ofVec3f location) {
 
 	ofPushMatrix();
 	ofTranslate(location);
-
 	ofSetLineWidth(1.0);
 
 	// X Axis
 	ofSetColor(ofColor(255, 0, 0));
 	ofDrawLine(ofPoint(0, 0, 0), ofPoint(1, 0, 0));
 	
+
+	// Y Axis
+	ofSetColor(ofColor(0, 255, 0));
+	ofDrawLine(ofPoint(0, 0, 0), ofPoint(0, 1, 0));
+
+	// Z Axis
+	ofSetColor(ofColor(0, 0, 255));
+	ofDrawLine(ofPoint(0, 0, 0), ofPoint(0, 0, 1));
+
+	ofPopMatrix();
+}
+
+void ofApp::drawAxisLander() {
+	ofPushMatrix();
+	ofTranslate(landerParticle.position);
+	ofRotate(yRotationAngle, 0, 1, 0);
+	ofSetLineWidth(1.0);
+
+	// X Axis
+	ofSetColor(ofColor(255, 0, 0));
+	ofDrawLine(ofPoint(0, 0, 0), ofPoint(1, 0, 0));
+
 
 	// Y Axis
 	ofSetColor(ofColor(0, 255, 0));
@@ -244,9 +298,10 @@ void ofApp::keyPressed(int key) {
 		counterClockwiseRot = true;
 		break;
 	case 'w':     // spacecraft thrust UP
-		landerParticle.acceleration.set(landerParticle.acceleration.x, 5, landerParticle.acceleration.z);
+		wKeyPressed = true;
 		break;
 	case 's':     // spacefraft thrust DOWN
+		sKeyPressed = true;
 		break;
 	case OF_KEY_F1:
 		theCam = &cam;
@@ -265,21 +320,22 @@ void ofApp::keyPressed(int key) {
 		break;
 	case OF_KEY_DEL:
 		break;
-	case OF_KEY_RIGHT:    // move forward
+	case OF_KEY_UP:    // move forward
 		upPressed = true;
-		landerParticle.acceleration.set(5, landerParticle.acceleration.y, landerParticle.acceleration.z);
+		//landerParticle.acceleration.set(landerParticle.acceleration.x, landerParticle.acceleration.y, -5);
 		break;
-	case OF_KEY_LEFT:   // move backward
+	case OF_KEY_DOWN:   // move backward
 		downPressed = true;
-		landerParticle.acceleration.set(-5, landerParticle.acceleration.y, landerParticle.acceleration.z);
+		//landerParticle.acceleration.set(landerParticle.acceleration.x, landerParticle.acceleration.y, 5);
 		break;
-	case OF_KEY_UP:   // move left
+	case OF_KEY_LEFT:   // move left
 		leftPressed = true;
-		landerParticle.acceleration.set(landerParticle.acceleration.x, landerParticle.acceleration.y, -5);
+		//landerParticle.acceleration.set(-5, landerParticle.acceleration.y, landerParticle.acceleration.z);
 		break;
-	case OF_KEY_DOWN:   // move right
+	case OF_KEY_RIGHT:   // move right
 		rightPressed = true;
-		landerParticle.acceleration.set(landerParticle.acceleration.x, landerParticle.acceleration.y, 5);
+		
+		//landerParticle.acceleration.set(5, landerParticle.acceleration.y, landerParticle.acceleration.z);
 		break;
 	default:
 		break;
@@ -299,27 +355,33 @@ void ofApp::togglePointsDisplay() {
 void ofApp::keyReleased(int key) {
 
 	switch (key) {
-	case OF_KEY_RIGHT:
-		upPressed = false;
-		landerParticle.acceleration.set(0, landerParticle.acceleration.y, landerParticle.acceleration.z);
-		break;
-	case OF_KEY_LEFT:
-		downPressed = false;
-		landerParticle.acceleration.set(0, landerParticle.acceleration.y, landerParticle.acceleration.z);
-		break;
 	case OF_KEY_UP:
-		leftPressed = false;
-		landerParticle.acceleration.set(landerParticle.acceleration.x, landerParticle.acceleration.y, 0);
+		upPressed = false;
+		heading.z = 0;
 		break;
 	case OF_KEY_DOWN:
+		downPressed = false;
+		heading.z = 0;
+		break;
+	case OF_KEY_LEFT:
+		leftPressed = false;
+		heading.x = 0;
+		break;
+	case OF_KEY_RIGHT:
 		rightPressed = false;
-		landerParticle.acceleration.set(landerParticle.acceleration.x, landerParticle.acceleration.y, 0);
+		heading.x = 0;
 		break;
 	case 'd':
 		clockwiseRot = false;
 		break;
 	case 'a':
 		counterClockwiseRot = false;
+		break;
+	case 'w':
+		wKeyPressed = false;
+		break;
+	case 's':
+		sKeyPressed = false;
 		break;
 	case OF_KEY_ALT:
 		cam.disableMouseInput();
@@ -330,8 +392,6 @@ void ofApp::keyReleased(int key) {
 		break;
 	case OF_KEY_SHIFT:
 		break;
-	case 'w':
-		landerParticle.acceleration.set(0, -.5, 0);
 	default:
 		break;
 
