@@ -14,6 +14,10 @@
 //
 void ofApp::setup() {
 
+	//debug GUI
+	gui.setup();
+	gui.add(axisButton.setup("Axis Toggle", false));
+
 	ofSetFrameRate(60);
 	bWireframe = false;
 	bDisplayPoints = false;
@@ -66,18 +70,6 @@ void ofApp::setup() {
 	// setup particle system
 	// attach thrusters to lander
 	yThruster.setPosition(landerParticle.position);
-	fwdThruster.setPosition(landerParticle.position);
-	bckThruster.setPosition(landerParticle.position);
-	leftThruster.setPosition(landerParticle.position);
-	rightThruster.setPosition(landerParticle.position);
-
-	// set exhaust directions
-	fwdThruster.velocity= ofVec3f(0, 0, 10);
-	bckThruster.velocity= ofVec3f(0, 0,-10);
-	leftThruster.velocity = ofVec3f(10, 0, 0);
-	rightThruster.velocity = ofVec3f(-10, 0, 0);
-
-
 	yThruster.setRate(1000);
 	
 }
@@ -109,37 +101,30 @@ void ofApp::update() {
 	//Up and Down Heading
 	
 	if (upPressed && downPressed) {
-		fwdThruster.start();
-		fwdThruster.oneShot = true;
-		bckThruster.start();
-		bckThruster.oneShot = true;
+		
 	}
 	else if (upPressed) {
 		tempVec.z = -headingAcceleration;
-		fwdThruster.start();
-		fwdThruster.oneShot = true;
+		yThruster.start();
+		yThruster.oneShot = true;
 	}
 	else if (downPressed) {
 		tempVec.z = headingAcceleration;
-		bckThruster.start();
-		bckThruster.oneShot = true;
+		yThruster.start();
+		yThruster.oneShot = true;
 	}
 	//Left and Right Heading
 	if (leftPressed && rightPressed) {
-		leftThruster.start();
-		leftThruster.oneShot = true;
-		rightThruster.start();
-		rightThruster.oneShot = true;
 	}
 	else if (leftPressed) {
 		tempVec.x = -headingAcceleration;
-		leftThruster.start();
-		leftThruster.oneShot = true;
+		yThruster.start();
+		yThruster.oneShot = true;
 	}
 	else if (rightPressed) {
 		tempVec.x = headingAcceleration;
-		rightThruster.start();
-		rightThruster.oneShot = true;
+		yThruster.start();
+		yThruster.oneShot = true;
 	}
 
 	
@@ -148,12 +133,27 @@ void ofApp::update() {
 	
 	//Rotate lander using 'a' and 'd' keys
 	if (counterClockwiseRot) {
-		yRotationAngle=yRotationAngle+1;
+		rotationAccel = 1;
 	}
-	if (clockwiseRot) {
-		yRotationAngle=yRotationAngle-1;
+	else if (clockwiseRot) {
+		rotationAccel = -1;
 	}
+	else {
+		rotationAccel = 0;
+	}
+
+	//Deceleration when nothing hit
+	if (rotationVel > 0) {
+		rotationVel -= .05;
+	}
+	else if (rotationVel < 0) {
+		rotationVel += .05;
+	}
+
+	rotationVel = rotationVel + (rotationAccel / 5);
+	yRotationAngle = yRotationAngle + rotationVel*.2;
 	
+
 	
 	//Turbulance effect when not on the floor; adds slight randomness to the heading vector
 	if (landerParticle.position.y > 0) {
@@ -182,33 +182,11 @@ void ofApp::update() {
 	//Update thruster exhaust
 
 	yThruster.setPosition(landerParticle.position+ofVec3f(0,1,0));
-	fwdThruster.setPosition(landerParticle.position + ofVec3f(0, 1, 0));
-	bckThruster.setPosition(landerParticle.position + ofVec3f(0, 1, 0));
-	leftThruster.setPosition(landerParticle.position + ofVec3f(0, 1, 0));
-	rightThruster.setPosition(landerParticle.position + ofVec3f(0, 1, 0));
-
-	//Update thruster exhaust rotation
-	if (counterClockwiseRot){
-		fwdThruster.velocity = fwdThruster.velocity.rotate(1, ofVec3f(0, 1, 0));
-		bckThruster.velocity = bckThruster.velocity.rotate(1, ofVec3f(0, 1, 0));
-		rightThruster.velocity = rightThruster.velocity.rotate(1, ofVec3f(0, 1, 0));
-		leftThruster.velocity = leftThruster.velocity.rotate(1, ofVec3f(0, 1, 0));
-	}
-	if (clockwiseRot) {
-		fwdThruster.velocity = fwdThruster.velocity.rotate(-1, ofVec3f(0, 1, 0));
-		bckThruster.velocity = bckThruster.velocity.rotate(-1, ofVec3f(0, 1, 0));
-		rightThruster.velocity = rightThruster.velocity.rotate(-1, ofVec3f(0, 1, 0));
-		leftThruster.velocity = leftThruster.velocity.rotate(-1, ofVec3f(0, 1, 0));
-	}
-	
 
 
 	//LEM update
 	yThruster.update();
-	fwdThruster.update();
-	bckThruster.update();
-	leftThruster.update();
-	rightThruster.update();
+
 
 
 }
@@ -273,9 +251,12 @@ void ofApp::draw() {
 	ofPopMatrix();
 
 	//draw axis
-	drawAxis(ofVec3f(0,0,0));
-	drawAxisLander();
-	drawAxis(heading);
+	if (debugEnable) {
+		drawAxis(ofVec3f(0, 0, 0));
+		drawAxisLander();
+		drawAxisHeader();
+	}
+	
 
 	//draw exhaust
 
@@ -350,10 +331,35 @@ void ofApp::drawAxisLander() {
 	ofPopMatrix();
 }
 
+void ofApp::drawAxisHeader() {
+	ofPushMatrix();
+	ofTranslate(landerParticle.position+heading);
+	ofRotate(yRotationAngle, 0, 1, 0);
+	ofSetLineWidth(1.0);
+
+	// X Axis
+	ofSetColor(ofColor(255, 0, 0));
+	ofDrawLine(ofPoint(0, 0, 0), ofPoint(1, 0, 0));
+
+
+	// Y Axis
+	ofSetColor(ofColor(0, 255, 0));
+	ofDrawLine(ofPoint(0, 0, 0), ofPoint(0, 1, 0));
+
+	// Z Axis
+	ofSetColor(ofColor(0, 0, 255));
+	ofDrawLine(ofPoint(0, 0, 0), ofPoint(0, 0, -1));
+
+	ofPopMatrix();
+}
+
 
 void ofApp::keyPressed(int key) {
 
 	switch (key) {
+	case '`':
+		debugEnable = !debugEnable;
+		break;
 	case 'C':
 	case 'c':
 		if (cam.getMouseInputEnabled()) cam.disableMouseInput();

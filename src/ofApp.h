@@ -4,6 +4,7 @@
 #include  "ofxAssimpModelLoader.h"
 #include "ParticleSystem.h"
 #include "ParticleEmitter.h"
+#include "ofxGui.h"
 
 
 
@@ -29,6 +30,7 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		void drawAxis(ofVec3f);
 		void drawAxisLander();
+		void drawAxisHeader();
 		void initLightingAndMaterials();
 		void savePicture();
 		void toggleWireframeMode();
@@ -71,7 +73,8 @@ class ofApp : public ofBaseApp{
 		//rotation variables
 		bool clockwiseRot = false;
 		bool counterClockwiseRot = false;
-
+		float rotationAccel = 0;
+		float rotationVel = 0;
 
 		bool bAltKeyDown;
 		bool bCtrlKeyDown;
@@ -80,4 +83,8 @@ class ofApp : public ofBaseApp{
 	
 		bool bBackgroundLoaded = false;
 		bool bLanderLoaded = false;
+
+		ofxPanel gui;
+		ofxToggle axisButton;
+		bool debugEnable = false;
 };
