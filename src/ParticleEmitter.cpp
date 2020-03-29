@@ -28,23 +28,23 @@ ParticleEmitter::~ParticleEmitter() {
 }
 
 void ParticleEmitter::init() {
-	rate = 1;
-	velocity = ofVec3f(0, 20, 0);
-	lifespan = 3;
+	rate = 50;
+	velocity = ofVec3f(0, -10, 0);
+	lifespan = 1;
 	mass = 1;
-	randomLife = false;
-	lifeMinMax = ofVec3f(2, 4);
+	randomLife = true;
+	lifeMinMax = ofVec3f(.01, .2);
 	started = false;
 	oneShot = false;
 	fired = false;
 	lastSpawned = 0;
-	radius = 1;
-	particleRadius = .1;
+	radius = .2;
+	particleRadius = .01;
 	visible = true;
-	type = DirectionalEmitter;
-	groupSize = 1;
+	type = DiscEmitter;
+	groupSize = 200;
 	damping = .99;
-	particleColor = ofColor::red;
+	particleColor = ofColor::yellow;
 	position = ofVec3f(0, 0, 0);
 }
 

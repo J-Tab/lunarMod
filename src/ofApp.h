@@ -59,7 +59,8 @@ class ofApp : public ofBaseApp{
 		bool wKeyPressed = false;
 		bool sKeyPressed = false;
 
-		
+		//emitters attached to the lander
+		ParticleEmitter yThruster = ParticleEmitter();
 		
 		//rotation variables
 		bool clockwiseRot = false;

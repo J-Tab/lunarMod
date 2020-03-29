@@ -63,9 +63,10 @@ void ofApp::setup() {
 		ofExit(0);
 	}
 
-	// setup LEM
+	// setup particle system
 	//
-
+	yThruster.setPosition(landerParticle.position);
+	yThruster.setRate(1000);
 }
 
 
@@ -82,6 +83,8 @@ void ofApp::update() {
 	}
 	else if (wKeyPressed) {
 		tempVec.y = 5.0;
+		yThruster.start();
+		yThruster.oneShot = true;
 	}
 	else if (sKeyPressed) {
 		tempVec.y = -5;
@@ -106,6 +109,13 @@ void ofApp::update() {
 	else if (rightPressed) {
 		tempVec.x = headingAcceleration;
 	}
+
+	//Turbulance effect
+	if (!upPressed && !downPressed && !leftPressed && !rightPressed && !wKeyPressed && !sKeyPressed) {
+		if (landerParticle.position.y > 0) {
+
+		}
+	}
 	
 	
 	//Rotate lander using 'a' and 'd' keys
@@ -126,6 +136,14 @@ void ofApp::update() {
 		landerParticle.position.y = 0;
 	}
 	lander.setPosition(landerParticle.position.x,landerParticle.position.y,landerParticle.position.z);
+
+	//Update thruster exhaust
+
+	yThruster.setPosition(landerParticle.position+ofVec3f(0,1,0));
+
+
+	//LEM update
+	yThruster.update();
 }
 
 //--------------------------------------------------------------
@@ -192,6 +210,11 @@ void ofApp::draw() {
 	drawAxisLander();
 	drawAxis(heading);
 
+	//draw exhaust
+
+	yThruster.draw();
+
+
 	theCam->end();
 
 	// draw screen data
@@ -205,6 +228,8 @@ void ofApp::draw() {
 	str2 += "Altitide (AGL): " + std::to_string(lander.getPosition().y);
 	ofSetColor(ofColor::white);
 	ofDrawBitmapString(str2, 5, 15);
+
+	
 }
 
 
