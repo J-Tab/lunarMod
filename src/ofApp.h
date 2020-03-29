@@ -41,6 +41,7 @@ class ofApp : public ofBaseApp{
 		//heading vector for lander
 		ofVec3f heading = ofVec3f(0,0,0);
 		ofVec3f headingRot = heading;
+		int timer = 0;
 		
 		ofEasyCam cam;
 		ofxAssimpModelLoader lander;
@@ -59,8 +60,13 @@ class ofApp : public ofBaseApp{
 		bool wKeyPressed = false;
 		bool sKeyPressed = false;
 
+
 		//emitters attached to the lander
 		ParticleEmitter yThruster = ParticleEmitter();
+		ParticleEmitter fwdThruster = ParticleEmitter();
+		ParticleEmitter bckThruster = ParticleEmitter();
+		ParticleEmitter leftThruster = ParticleEmitter();
+		ParticleEmitter rightThruster = ParticleEmitter();
 		
 		//rotation variables
 		bool clockwiseRot = false;

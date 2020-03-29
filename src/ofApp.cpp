@@ -64,9 +64,22 @@ void ofApp::setup() {
 	}
 
 	// setup particle system
-	//
+	// attach thrusters to lander
 	yThruster.setPosition(landerParticle.position);
+	fwdThruster.setPosition(landerParticle.position);
+	bckThruster.setPosition(landerParticle.position);
+	leftThruster.setPosition(landerParticle.position);
+	rightThruster.setPosition(landerParticle.position);
+
+	// set exhaust directions
+	fwdThruster.velocity= ofVec3f(0, 0, 10);
+	bckThruster.velocity= ofVec3f(0, 0,-10);
+	leftThruster.velocity = ofVec3f(10, 0, 0);
+	rightThruster.velocity = ofVec3f(-10, 0, 0);
+
+
 	yThruster.setRate(1000);
+	
 }
 
 
@@ -74,9 +87,10 @@ void ofApp::setup() {
 
 
 void ofApp::update() {
-
+	timer++;
 	//Heading depending on arrow keys
 	ofVec3f tempVec = ofVec3f(0, 0, 0);
+	ofVec3f turbVec = ofVec3f(0, 0, 0);
 	//W and S headings
 	if ((wKeyPressed && sKeyPressed) || (!wKeyPressed && !sKeyPressed)) {
 		tempVec.y = -.5;
@@ -88,34 +102,48 @@ void ofApp::update() {
 	}
 	else if (sKeyPressed) {
 		tempVec.y = -5;
+		yThruster.start();
+		yThruster.oneShot = true;
 	}
 
 	//Up and Down Heading
 	
 	if (upPressed && downPressed) {
+		fwdThruster.start();
+		fwdThruster.oneShot = true;
+		bckThruster.start();
+		bckThruster.oneShot = true;
 	}
 	else if (upPressed) {
 		tempVec.z = -headingAcceleration;
+		fwdThruster.start();
+		fwdThruster.oneShot = true;
 	}
 	else if (downPressed) {
 		tempVec.z = headingAcceleration;
+		bckThruster.start();
+		bckThruster.oneShot = true;
 	}
 	//Left and Right Heading
 	if (leftPressed && rightPressed) {
+		leftThruster.start();
+		leftThruster.oneShot = true;
+		rightThruster.start();
+		rightThruster.oneShot = true;
 	}
 	else if (leftPressed) {
 		tempVec.x = -headingAcceleration;
+		leftThruster.start();
+		leftThruster.oneShot = true;
 	}
 	else if (rightPressed) {
 		tempVec.x = headingAcceleration;
+		rightThruster.start();
+		rightThruster.oneShot = true;
 	}
 
-	//Turbulance effect
-	if (!upPressed && !downPressed && !leftPressed && !rightPressed && !wKeyPressed && !sKeyPressed) {
-		if (landerParticle.position.y > 0) {
-
-		}
-	}
+	
+	
 	
 	
 	//Rotate lander using 'a' and 'd' keys
@@ -125,7 +153,21 @@ void ofApp::update() {
 	if (clockwiseRot) {
 		yRotationAngle=yRotationAngle-1;
 	}
-	heading = tempVec.rotate(yRotationAngle, ofVec3f(0, 1, 0));
+	
+	
+	//Turbulance effect when not on the floor; adds slight randomness to the heading vector
+	if (landerParticle.position.y > 0) {
+		float v = float(rand()) / (float(RAND_MAX) + 2.0);
+		int rAngle = rand() % 360;
+		turbVec.x += v;
+		turbVec = turbVec.rotate(rAngle, ofVec3f(0, 1, 0));
+		heading = tempVec.rotate(yRotationAngle, ofVec3f(0, 1, 0)) + turbVec;
+	}
+	else {
+		heading = tempVec.rotate(yRotationAngle, ofVec3f(0, 1, 0));
+	}
+		
+	
 	
 	lander.setRotation(1, yRotationAngle, 0, 1, 0);
 	landerParticle.acceleration = heading;
@@ -140,10 +182,35 @@ void ofApp::update() {
 	//Update thruster exhaust
 
 	yThruster.setPosition(landerParticle.position+ofVec3f(0,1,0));
+	fwdThruster.setPosition(landerParticle.position + ofVec3f(0, 1, 0));
+	bckThruster.setPosition(landerParticle.position + ofVec3f(0, 1, 0));
+	leftThruster.setPosition(landerParticle.position + ofVec3f(0, 1, 0));
+	rightThruster.setPosition(landerParticle.position + ofVec3f(0, 1, 0));
+
+	//Update thruster exhaust rotation
+	if (counterClockwiseRot){
+		fwdThruster.velocity = fwdThruster.velocity.rotate(1, ofVec3f(0, 1, 0));
+		bckThruster.velocity = bckThruster.velocity.rotate(1, ofVec3f(0, 1, 0));
+		rightThruster.velocity = rightThruster.velocity.rotate(1, ofVec3f(0, 1, 0));
+		leftThruster.velocity = leftThruster.velocity.rotate(1, ofVec3f(0, 1, 0));
+	}
+	if (clockwiseRot) {
+		fwdThruster.velocity = fwdThruster.velocity.rotate(-1, ofVec3f(0, 1, 0));
+		bckThruster.velocity = bckThruster.velocity.rotate(-1, ofVec3f(0, 1, 0));
+		rightThruster.velocity = rightThruster.velocity.rotate(-1, ofVec3f(0, 1, 0));
+		leftThruster.velocity = leftThruster.velocity.rotate(-1, ofVec3f(0, 1, 0));
+	}
+	
 
 
 	//LEM update
 	yThruster.update();
+	fwdThruster.update();
+	bckThruster.update();
+	leftThruster.update();
+	rightThruster.update();
+
+
 }
 
 //--------------------------------------------------------------
@@ -213,6 +280,10 @@ void ofApp::draw() {
 	//draw exhaust
 
 	yThruster.draw();
+	fwdThruster.draw();
+	bckThruster.draw();
+	leftThruster.draw();
+	rightThruster.draw();
 
 
 	theCam->end();
@@ -274,7 +345,7 @@ void ofApp::drawAxisLander() {
 
 	// Z Axis
 	ofSetColor(ofColor(0, 0, 255));
-	ofDrawLine(ofPoint(0, 0, 0), ofPoint(0, 0, 1));
+	ofDrawLine(ofPoint(0, 0, 0), ofPoint(0, 0, -1));
 
 	ofPopMatrix();
 }
