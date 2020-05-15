@@ -5,6 +5,9 @@
 #include "ParticleSystem.h"
 #include "ParticleEmitter.h"
 #include "ofxGui.h"
+#include "box.h"
+#include "ray.h"
+#include "KdTree.h"
 
 
 
@@ -35,6 +38,8 @@ class ofApp : public ofBaseApp{
 		void savePicture();
 		void toggleWireframeMode();
 		void togglePointsDisplay();
+		Box meshBounds(const ofMesh &);
+		KdTree treeAl;
 
 		//variable for the rotation of the lander around the y-axis
 		float yRotationAngle = 0;
@@ -46,8 +51,11 @@ class ofApp : public ofBaseApp{
 		int timer = 0;
 		
 		ofEasyCam cam;
-		ofxAssimpModelLoader lander;
+		ofxAssimpModelLoader lander, terrain;
 		Particle landerParticle = Particle();
+		Box boundingBox;
+		Box landerBounds;
+
 
 		ofLight light;
 		ofImage backgroundImage;

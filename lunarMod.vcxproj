@@ -180,6 +180,8 @@
     <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\box.cc" />
+    <ClCompile Include="src\KdTree.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ofApp.cpp" />
     <ClCompile Include="..\..\of_v0.11.0_vs2017_release\addons\ofxAssimpModelLoader\src\ofxAssimpAnimation.cpp" />
@@ -200,8 +202,11 @@
     <ClCompile Include="src\ParticleEmitter.cpp" />
     <ClCompile Include="src\ParticleSystem.cpp" />
     <ClCompile Include="src\TransformObject.cpp" />
+    <ClCompile Include="src\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\box.h" />
+    <ClInclude Include="src\KdTree.h" />
     <ClInclude Include="src\ofApp.h" />
     <ClInclude Include="..\..\of_v0.11.0_vs2017_release\addons\ofxAssimpModelLoader\src\ofxAssimpAnimation.h" />
     <ClInclude Include="..\..\of_v0.11.0_vs2017_release\addons\ofxAssimpModelLoader\src\ofxAssimpMeshHelper.h" />
@@ -264,7 +269,10 @@
     <ClInclude Include="src\Particle.h" />
     <ClInclude Include="src\ParticleEmitter.h" />
     <ClInclude Include="src\ParticleSystem.h" />
+    <ClInclude Include="src\ray.h" />
     <ClInclude Include="src\TransformObject.h" />
+    <ClInclude Include="src\Util.h" />
+    <ClInclude Include="src\vector3.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(OF_ROOT)\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">

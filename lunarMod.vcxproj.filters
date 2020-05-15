@@ -61,6 +61,15 @@
     <ClCompile Include="src\TransformObject.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\box.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\KdTree.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Util.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -293,8 +302,25 @@
     <ClInclude Include="src\TransformObject.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\vector3.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\box.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\KdTree.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="icon.rc" />
+    <ResourceCompile Include="icon.rc">
+      <Filter>src</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

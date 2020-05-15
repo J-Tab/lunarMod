@@ -8,6 +8,8 @@
 //   author:  Kevin M. Smith   
 
 #include "ofApp.h"
+#include "Util.h"
+#include <glm/gtx/intersect.hpp>
 
 //--------------------------------------------------------------
 // setup scene, lighting, state and load geometry
@@ -52,6 +54,14 @@ void ofApp::setup() {
 	//
 	initLightingAndMaterials();
 
+	//setup terrain
+	terrain.loadModel("geo/moon-houdini.obj");
+	terrain.setRotation(0, -180, 1, 0, 0);
+	terrain.setScaleNormalization(false);
+
+	//boundingBox = meshBounds(terrain.getMesh(0));
+
+
 
 	// load lander model
 	//
@@ -71,6 +81,10 @@ void ofApp::setup() {
 	// attach thrusters to lander
 	yThruster.setPosition(landerParticle.position);
 	yThruster.setRate(1000);
+
+
+	//Tree creation
+	treeAl.create(terrain.getMesh(0), 6);
 	
 }
 
@@ -223,6 +237,7 @@ void ofApp::draw() {
 
 	if (bWireframe) {                    // wireframe mode  (include axis)
 		ofDisableLighting();
+		terrain.drawWireframe();
 		ofSetColor(ofColor::slateGray);
 		if (bLanderLoaded) {
 
@@ -234,6 +249,7 @@ void ofApp::draw() {
 	}
 	else {
 		ofEnableLighting();              // shaded mode
+		terrain.drawFaces();
 		if (bLanderLoaded) {
 //			lander.setRotation(0, angle, 0, 1, 0);
 			lander.drawFaces();
