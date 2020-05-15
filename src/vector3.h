@@ -29,6 +29,10 @@ class Vector3 {
       d[2] *= temp;
     }
 
+	float distance(Vector3 vec) {
+		return sqrt((pow((d[0] - vec.d[0]), 2)+ pow((d[1] - vec.d[1]), 2)+ pow((d[2] - vec.d[2]), 2)));
+	}
+
     /////////////////////////////////////////////////////////
     // Overloaded operators
     /////////////////////////////////////////////////////////

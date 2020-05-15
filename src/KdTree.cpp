@@ -86,7 +86,7 @@ int KdTree::getMeshPointsInBox(const ofMesh & mesh, const vector<int>& points,
 	for (int i = 0; i < points.size(); i++) {
 		int currentID = points[i];
 		//Negative becuase it doesn't work otherwise, not sure
-		Vector3 current = Vector3(-mesh.getVertex(currentID).x, -mesh.getVertex(currentID).y, mesh.getVertex(currentID).z);
+		Vector3 current = Vector3(-mesh.getVertex(currentID).x, mesh.getVertex(currentID).y, -mesh.getVertex(currentID).z);
 
 		if (box.inside(current)) {
 			//cout << "Vertex in: " << current.x() << ":"<< current.y() << ":"<< current.z() << ":" << endl;

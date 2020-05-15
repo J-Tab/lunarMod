@@ -38,6 +38,9 @@ class ofApp : public ofBaseApp{
 		void savePicture();
 		void toggleWireframeMode();
 		void togglePointsDisplay();
+		void drawBox(const Box &box);
+		Vector3 closestPt(Vector3 pt,TreeNode source);
+		Vector3 closePt;
 		KdTree treeAl;
 		float AGL;
 		TreeNode rayBox;

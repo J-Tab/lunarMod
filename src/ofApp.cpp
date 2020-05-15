@@ -57,9 +57,10 @@ void ofApp::setup() {
 	//setup terrain
 	//terrain.loadModel("geo/mars-5k.obj");
 	terrain.loadModel("geo/moon-houdini.obj");
-	terrain.setRotation(0, -180, 1, 0, 0);
 	terrain.setScaleNormalization(false);
-	boundingBox = boundingBox = meshBounds(terrain.getMesh(0));
+	terrain.setRotation(0, -180, 1, 0, 0);
+	terrain.update();
+	boundingBox = meshBounds(terrain.getMesh(0));
 
 
 
@@ -84,8 +85,8 @@ void ofApp::setup() {
 
 
 	//Tree creation
-	treeAl.create(terrain.getMesh(0), 13);
-	
+	//treeAl.create(terrain.getMesh(0), 10);
+	treeAl.create(terrain.getMesh(0), 17);
 }
 
 
@@ -181,15 +182,20 @@ void ofApp::update() {
 		heading = tempVec.rotate(yRotationAngle, ofVec3f(0, 1, 0));
 	}
 		
-	
+	//Ray collision for altitude
+
+	rayBox = treeAl.findRayNode(Ray(Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z), Vector3(landerParticle.position.x, boundingBox.min().y(), landerParticle.position.z)));
+	closePt = closestPt(Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z), rayBox);
+	AGL = Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z).y() - closePt.y();
+
 	
 	lander.setRotation(1, yRotationAngle, 0, 1, 0);
 	landerParticle.acceleration = heading;
 
 	//Update physics movement for the lander
 	landerParticle.integrate();
-	if (landerParticle.position.y < 0){
-		landerParticle.position.y = 0;
+	if (landerParticle.position.y < closePt.y()){
+		landerParticle.position.y = closePt.y();
 	}
 	lander.setPosition(landerParticle.position.x,landerParticle.position.y,landerParticle.position.z);
 
@@ -201,10 +207,7 @@ void ofApp::update() {
 	//LEM update
 	yThruster.update();
 
-	//Ray collision for altitude
 	
-	rayBox = treeAl.findRayNode(Ray(Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z),Vector3(landerParticle.position.x, boundingBox.min().y(), landerParticle.position.z)));
-	AGL = landerParticle.position.y - rayBox.box.center().y();
 }
 
 //--------------------------------------------------------------
@@ -277,12 +280,13 @@ void ofApp::draw() {
 
 	ofNoFill();
 	ofSetColor(ofColor::white);
-	//treeAl.draw(nTree, 0);
+	drawBox(boundingBox);
 	ofSetColor(ofColor::lightGray);
-	treeAl.drawLeafNodes(treeAl.root);
+	//treeAl.drawLeafNodes(treeAl.root);
 
 	//draw exhaust
 
+	ofDisableLighting();
 	yThruster.draw();
 	fwdThruster.draw();
 	bckThruster.draw();
@@ -594,19 +598,19 @@ void ofApp::initLightingAndMaterials() {
 
 
 	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-//	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-//	glLightfv(GL_LIGHT0, GL_POSITION, position);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+	glLightfv(GL_LIGHT0, GL_POSITION, position);
 	glLightfv(GL_LIGHT1, GL_AMBIENT, ambient);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse);
 	glLightfv(GL_LIGHT1, GL_POSITION, position);
 
 
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
-//	glLightModelfv(GL_LIGHT_MODEL_TWO_SIDE, lmodel_twoside);
+	glLightModelfv(GL_LIGHT_MODEL_TWO_SIDE, lmodel_twoside);
 
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
+//	glEnable(GL_LIGHT1);
 	glShadeModel(GL_SMOOTH);
 } 
 
@@ -645,4 +649,34 @@ Box ofApp::meshBounds(const ofMesh & mesh) {
 		else if (v.z < min.z) min.z = v.z;
 	}
 	return Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+}
+
+void ofApp::drawBox(const Box &box) {
+	Vector3 min = box.parameters[0];
+	Vector3 max = box.parameters[1];
+	Vector3 size = max - min;
+	Vector3 center = size / 2 + min;
+	ofVec3f p = ofVec3f(center.x(), center.y(), center.z());
+	float w = size.x();
+	float h = size.y();
+	float d = size.z();
+	ofDrawBox(p, w, h, d);
+}
+
+Vector3 ofApp::closestPt(Vector3 pt,TreeNode source)
+{
+	int closeID = source.points[0];
+	Vector3 rVec = Vector3(treeAl.mesh.getVertex(closeID).x, treeAl.mesh.getVertex(closeID).y, treeAl.mesh.getVertex(closeID).z);
+	float closestDist = pt.distance(rVec);
+	for (int i = 1; i < source.points.size(); i++) {
+		int check = source.points[i];
+		Vector3 checkVec = Vector3(treeAl.mesh.getVertex(check).x, treeAl.mesh.getVertex(check).y, treeAl.mesh.getVertex(check).z);
+		float checkDist = pt.distance(checkVec);
+		if (closestDist > checkDist) {
+			closeID = i;
+			rVec = checkVec;
+			closestDist = checkDist;
+		}
+	}
+	return rVec;
 }
