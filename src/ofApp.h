@@ -19,7 +19,7 @@ class ofApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
-
+		Box meshBounds(const ofMesh &);
 		void keyPressed(int key);
 		void keyReleased(int key);
 		void mouseMoved(int x, int y );
@@ -38,8 +38,9 @@ class ofApp : public ofBaseApp{
 		void savePicture();
 		void toggleWireframeMode();
 		void togglePointsDisplay();
-		Box meshBounds(const ofMesh &);
 		KdTree treeAl;
+		float AGL;
+		TreeNode rayBox;
 
 		//variable for the rotation of the lander around the y-axis
 		float yRotationAngle = 0;

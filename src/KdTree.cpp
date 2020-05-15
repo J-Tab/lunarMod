@@ -71,7 +71,7 @@ Box KdTree::meshBounds(const ofMesh & mesh) {
 		if (v.z > max.z) max.z = v.z;
 		else if (v.z < min.z) min.z = v.z;
 	}
-	cout << "vertices: " << n << endl;
+	//cout << "vertices: " << n << endl;
 //	cout << "min: " << min << "max: " << max << endl;
 	return Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 }
@@ -85,6 +85,7 @@ int KdTree::getMeshPointsInBox(const ofMesh & mesh, const vector<int>& points,
 	int counter = 0;
 	for (int i = 0; i < points.size(); i++) {
 		int currentID = points[i];
+		//Negative becuase it doesn't work otherwise, not sure
 		Vector3 current = Vector3(-mesh.getVertex(currentID).x, -mesh.getVertex(currentID).y, mesh.getVertex(currentID).z);
 
 		if (box.inside(current)) {
@@ -204,8 +205,35 @@ void KdTree::subdivide(const ofMesh & mesh, TreeNode & node, int numLevels, int 
 
 }
 
-bool KdTree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn) {
-	return false;
+TreeNode KdTree::findRayNode(const Ray &ray) {
+	TreeNode finalLeaf;
+	if (root.children[0].box.intersect(ray, 0, 1000)) {
+		intersect(ray, root.children[0], finalLeaf);
+	}
+	else {
+		intersect(ray, root.children[1], finalLeaf);
+	}
+	return finalLeaf;
+}
+
+void KdTree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn) {
+	//or statement due to possibility of only having 1 child
+	if (node.children[0].box.intersect(ray, 0, 1000) ||node.children.size() == 1) {
+		if (node.children[0].children.size() != 0) {
+			intersect(ray, node.children[0], nodeRtn);
+		}
+		else {
+			nodeRtn = node.children[0];
+		}
+	}
+	else {
+		if (node.children[1].children.size() != 0) {
+			intersect(ray, node.children[1], nodeRtn);
+		}
+		else {
+			nodeRtn = node.children[1];
+		}
+	}
 }
 
 

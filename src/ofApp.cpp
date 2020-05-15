@@ -55,11 +55,11 @@ void ofApp::setup() {
 	initLightingAndMaterials();
 
 	//setup terrain
+	//terrain.loadModel("geo/mars-5k.obj");
 	terrain.loadModel("geo/moon-houdini.obj");
 	terrain.setRotation(0, -180, 1, 0, 0);
 	terrain.setScaleNormalization(false);
-
-	//boundingBox = meshBounds(terrain.getMesh(0));
+	boundingBox = boundingBox = meshBounds(terrain.getMesh(0));
 
 
 
@@ -84,7 +84,7 @@ void ofApp::setup() {
 
 
 	//Tree creation
-	treeAl.create(terrain.getMesh(0), 6);
+	treeAl.create(terrain.getMesh(0), 13);
 	
 }
 
@@ -201,8 +201,10 @@ void ofApp::update() {
 	//LEM update
 	yThruster.update();
 
-
-
+	//Ray collision for altitude
+	
+	rayBox = treeAl.findRayNode(Ray(Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z),Vector3(landerParticle.position.x, boundingBox.min().y(), landerParticle.position.z)));
+	AGL = landerParticle.position.y - rayBox.box.center().y();
 }
 
 //--------------------------------------------------------------
@@ -272,7 +274,12 @@ void ofApp::draw() {
 		drawAxisLander();
 		drawAxisHeader();
 	}
-	
+
+	ofNoFill();
+	ofSetColor(ofColor::white);
+	//treeAl.draw(nTree, 0);
+	ofSetColor(ofColor::lightGray);
+	treeAl.drawLeafNodes(treeAl.root);
 
 	//draw exhaust
 
@@ -293,7 +300,7 @@ void ofApp::draw() {
 	ofDrawBitmapString(str, ofGetWindowWidth() - 170, 15);
 
 	string str2;
-	str2 += "Altitide (AGL): " + std::to_string(lander.getPosition().y);
+	str2 += "Altitide (AGL): " + std::to_string(AGL);
 	ofSetColor(ofColor::white);
 	ofDrawBitmapString(str2, 5, 15);
 
@@ -617,4 +624,25 @@ void ofApp::savePicture() {
 //
 void ofApp::dragEvent(ofDragInfo dragInfo) {
 
+}
+
+
+Box ofApp::meshBounds(const ofMesh & mesh) {
+	int n = mesh.getNumVertices();
+	ofVec3f v = mesh.getVertex(0);
+	ofVec3f max = v;
+	ofVec3f min = v;
+	for (int i = 1; i < n; i++) {
+		ofVec3f v = mesh.getVertex(i);
+
+		if (v.x > max.x) max.x = v.x;
+		else if (v.x < min.x) min.x = v.x;
+
+		if (v.y > max.y) max.y = v.y;
+		else if (v.y < min.y) min.y = v.y;
+
+		if (v.z > max.z) max.z = v.z;
+		else if (v.z < min.z) min.z = v.z;
+	}
+	return Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 }

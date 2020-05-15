@@ -32,10 +32,14 @@ public:
 	//
 	void subdivide(const ofMesh & mesh, TreeNode & node, int numLevels, int currentLevel);
 
+	//Return TreeNode of the intersected child box
+	TreeNode findRayNode(const Ray & ray);
+
 	//  Test for intersection of Tree given a ray and root node.  If a node is hit, return true
 	//  and the correspondind node in "nodeRtn"
 	//
-	bool intersect(const Ray &, const TreeNode & node, TreeNode & nodeRtn);
+
+	void intersect(const Ray &, const TreeNode & node, TreeNode & nodeRtn);
 
 	//  Recursive calls to draw the tree
 	//
