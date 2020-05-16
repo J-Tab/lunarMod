@@ -71,6 +71,7 @@ void ofApp::setup() {
 		lander.setScale(.5, .5, .5);
 		lander.setRotation(0, -180, 1, 0, 0);
 		lander.setPosition(0, 0, 0);
+		landerBounds = meshBounds(terrain.getMesh(0));
 		bLanderLoaded = true;
 	}
 	else {
@@ -193,6 +194,7 @@ void ofApp::update() {
 	landerParticle.acceleration = heading;
 
 	//Update physics movement for the lander
+	//Also collision detection
 	landerParticle.integrate();
 	if (landerParticle.position.y < closePt.y()){
 		landerParticle.position.y = closePt.y();
@@ -663,6 +665,8 @@ void ofApp::drawBox(const Box &box) {
 	ofDrawBox(p, w, h, d);
 }
 
+
+//Check from the treeNode pts
 Vector3 ofApp::closestPt(Vector3 pt,TreeNode source)
 {
 	int closeID = source.points[0];
@@ -679,4 +683,44 @@ Vector3 ofApp::closestPt(Vector3 pt,TreeNode source)
 		}
 	}
 	return rVec;
+}
+
+//Check closest points from an already provided source
+Vector3 ofApp::closestPt(Vector3 pt, vector<int> source)
+{
+	int closeID = source[0];
+	Vector3 rVec = Vector3(treeAl.mesh.getVertex(closeID).x, treeAl.mesh.getVertex(closeID).y, treeAl.mesh.getVertex(closeID).z);
+	float closestDist = pt.distance(rVec);
+	for (int i = 1; i < source.size(); i++) {
+		int check = source[i];
+		Vector3 checkVec = Vector3(treeAl.mesh.getVertex(check).x, treeAl.mesh.getVertex(check).y, treeAl.mesh.getVertex(check).z);
+		float checkDist = pt.distance(checkVec);
+		if (closestDist > checkDist) {
+			closeID = i;
+			rVec = checkVec;
+			closestDist = checkDist;
+		}
+	}
+	return rVec;
+}
+
+
+//Check for points of collission on the surface
+bool ofApp::ptCollide(TreeNode surfaceNode, Box landerBX, Vector3 ptRtn) {
+	vector<int> insidePts;
+	for (int i = 0; i < surfaceNode.points.size(); i++) {
+		Vector3 curPt = Vector3(treeAl.mesh.getVertex(surfaceNode.points[i]).x, treeAl.mesh.getVertex(surfaceNode.points[i]).y, treeAl.mesh.getVertex(surfaceNode.points[i]).z);
+		if (landerBX.inside(curPt)) {
+			insidePts.push_back(i);
+		}
+	}
+	//Check if there any pts that collided
+	if (insidePts.size() > 0) {
+		ptRtn = closestPt(landerBX.center(), insidePts);
+		return true;
+	}
+	else {
+		return false;
+	}
+
 }

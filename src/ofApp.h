@@ -40,6 +40,7 @@ class ofApp : public ofBaseApp{
 		void togglePointsDisplay();
 		void drawBox(const Box &box);
 		Vector3 closestPt(Vector3 pt,TreeNode source);
+		bool ptCollide(TreeNode surfaceNode, Box landerBX, Vector3 ptRtn);
 		Vector3 closePt;
 		KdTree treeAl;
 		float AGL;
