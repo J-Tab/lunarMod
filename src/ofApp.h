@@ -20,6 +20,7 @@ class ofApp : public ofBaseApp{
 		void update();
 		void draw();
 		Box meshBounds(const ofMesh &);
+		//Box multiMeshBounds(ofxAssimpModelLoader model);
 		void keyPressed(int key);
 		void keyReleased(int key);
 		void mouseMoved(int x, int y );
@@ -40,11 +41,12 @@ class ofApp : public ofBaseApp{
 		void togglePointsDisplay();
 		void drawBox(const Box &box);
 		Vector3 closestPt(Vector3 pt,TreeNode source);
-		bool ptCollide(TreeNode surfaceNode, Box landerBX, Vector3 ptRtn);
+		Vector3 closestPt(Vector3 pt, vector<int> source);
+		bool ptCollide(TreeNode &surfaceNode, Box &landerBX, Vector3 &ptRtn);
 		Vector3 closePt;
 		KdTree treeAl;
 		float AGL;
-		TreeNode rayBox;
+		
 
 		//variable for the rotation of the lander around the y-axis
 		float yRotationAngle = 0;
@@ -57,9 +59,16 @@ class ofApp : public ofBaseApp{
 		
 		ofEasyCam cam;
 		ofxAssimpModelLoader lander, terrain;
+		
+		//physics
 		Particle landerParticle = Particle();
 		Box boundingBox;
 		Box landerBounds;
+		Vector3 landedPoint;
+		bool lunarLanded;
+		TreeNode rayBox;
+		TreeNode bottomKdBox1;
+		TreeNode bottomKdBox2;
 
 
 		ofLight light;

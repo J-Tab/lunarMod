@@ -60,6 +60,7 @@ void ofApp::setup() {
 	terrain.setScaleNormalization(false);
 	terrain.setRotation(0, -180, 1, 0, 0);
 	terrain.update();
+	cout << "terrain meshes: " << terrain.getNumMeshes() << endl;
 	boundingBox = meshBounds(terrain.getMesh(0));
 
 
@@ -67,11 +68,14 @@ void ofApp::setup() {
 	// load lander model
 	//
 	if (lander.loadModel("geo/lander.obj")) {
+		
 		lander.setScaleNormalization(false);
 		lander.setScale(.5, .5, .5);
 		lander.setRotation(0, -180, 1, 0, 0);
 		lander.setPosition(0, 0, 0);
-		landerBounds = meshBounds(terrain.getMesh(0));
+		lander.update();
+		//landerBounds = Box(Vector3(lander.getSceneMin().x, lander.getSceneMin().y, lander.getSceneMin().z), Vector3(lander.getSceneMin().x+5, lander.getSceneMin().y+5, lander.getSceneMin().z+5));
+		cout << "Lander Max:  " << lander.getSceneMax() << endl;
 		bLanderLoaded = true;
 	}
 	else {
@@ -87,21 +91,25 @@ void ofApp::setup() {
 
 	//Tree creation
 	//treeAl.create(terrain.getMesh(0), 10);
-	treeAl.create(terrain.getMesh(0), 17);
+
+	//set to 17 for default
+	treeAl.create(terrain.getMesh(0), 12);
 }
 
 
-
+int LANDER_SIZE = 1.9;
 
 
 void ofApp::update() {
 	timer++;
+
+	
 	//Heading depending on arrow keys
 	ofVec3f tempVec = ofVec3f(0, 0, 0);
 	ofVec3f turbVec = ofVec3f(0, 0, 0);
 	//W and S headings
 	if ((wKeyPressed && sKeyPressed) || (!wKeyPressed && !sKeyPressed)) {
-		tempVec.y = -.5;
+		tempVec.y = -.1;
 	}
 	else if (wKeyPressed) {
 		tempVec.y = 5.0;
@@ -169,10 +177,10 @@ void ofApp::update() {
 	rotationVel = rotationVel + (rotationAccel / 5);
 	yRotationAngle = yRotationAngle + rotationVel*.2;
 	
-
+	
 	
 	//Turbulance effect when not on the floor; adds slight randomness to the heading vector
-	if (landerParticle.position.y > 0) {
+	if (landerParticle.position.y > landedPoint.y() && !lunarLanded) {
 		float v = float(rand()) / (float(RAND_MAX) + 2.0);
 		int rAngle = rand() % 360;
 		turbVec.x += v;
@@ -185,21 +193,45 @@ void ofApp::update() {
 		
 	//Ray collision for altitude
 
-	rayBox = treeAl.findRayNode(Ray(Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z), Vector3(landerParticle.position.x, boundingBox.min().y(), landerParticle.position.z)));
+	rayBox = treeAl.findRayNode(Ray(Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z), Vector3(landerParticle.position.x, landerParticle.position.y-LANDER_SIZE*100, landerParticle.position.z)));
+	bottomKdBox1 = treeAl.findRayNode(Ray(Vector3(landerParticle.position.x - LANDER_SIZE, landerParticle.position.y, landerParticle.position.z - LANDER_SIZE), Vector3(landerParticle.position.x - LANDER_SIZE, landerParticle.position.y-LANDER_SIZE, landerParticle.position.z - LANDER_SIZE)));
+	bottomKdBox2 = treeAl.findRayNode(Ray(Vector3(landerParticle.position.x + LANDER_SIZE, landerParticle.position.y, landerParticle.position.z + LANDER_SIZE), Vector3(landerParticle.position.x + LANDER_SIZE, landerParticle.position.y-LANDER_SIZE, landerParticle.position.z + LANDER_SIZE)));
 	closePt = closestPt(Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z), rayBox);
-	AGL = Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z).y() - closePt.y();
+	
 
 	
 	lander.setRotation(1, yRotationAngle, 0, 1, 0);
 	landerParticle.acceleration = heading;
 
+
+
+	landerBounds = Box(Vector3(landerParticle.position.x - LANDER_SIZE, landerParticle.position.y, landerParticle.position.z - LANDER_SIZE), Vector3(landerParticle.position.x + LANDER_SIZE, landerParticle.position.y + LANDER_SIZE, landerParticle.position.z + LANDER_SIZE));
+	//Box collision 
+	if (ptCollide(rayBox, landerBounds, landedPoint) || ptCollide(bottomKdBox1, landerBounds, landedPoint) || ptCollide(bottomKdBox2, landerBounds, landedPoint)) {
+		lunarLanded = true;
+		cout << "PT COLLIDE" << endl;
+		AGL = 0;
+	}
+	else {
+		lunarLanded = false;
+		AGL = Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z).y() - closePt.y();
+	}
+
+	if (lunarLanded && !wKeyPressed) {
+		landerParticle.acceleration = ofVec3f(landerParticle.acceleration.x, -landerParticle.acceleration.y, landerParticle.acceleration.z) / 2;
+		landerParticle.velocity = ofVec3f(landerParticle.velocity.x, -landerParticle.velocity.y, landerParticle.velocity.z) / 2;
+
+
+
+		/*landerParticle.acceleration = ofVec3f(0, 0, 0);
+		landerParticle.velocity = ofVec3f(0, 0, 0);*/
+	}
+	lander.setPosition(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z);
+
 	//Update physics movement for the lander
 	//Also collision detection
 	landerParticle.integrate();
-	if (landerParticle.position.y < closePt.y()){
-		landerParticle.position.y = closePt.y();
-	}
-	lander.setPosition(landerParticle.position.x,landerParticle.position.y,landerParticle.position.z);
+	
 
 	//Update thruster exhaust
 
@@ -280,9 +312,14 @@ void ofApp::draw() {
 		drawAxisHeader();
 	}
 
+	ofSetColor(ofColor::blue);
+	ofFill();
+	ofDrawSphere(ofVec3f(landerParticle.position.x, landerParticle.position.y - LANDER_SIZE, landerParticle.position.z),1);
+
 	ofNoFill();
 	ofSetColor(ofColor::white);
-	drawBox(boundingBox);
+	drawBox(landerBounds);
+	drawBox(rayBox.box);
 	ofSetColor(ofColor::lightGray);
 	//treeAl.drawLeafNodes(treeAl.root);
 
@@ -653,6 +690,47 @@ Box ofApp::meshBounds(const ofMesh & mesh) {
 	return Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 }
 
+//Box ofApp::multiMeshBounds(ofxAssimpModelLoader model) {
+//	int n = model.getMesh(0).getNumVertices();
+//	ofVec3f v = model.getMesh(0).getVertex(0);
+//	ofVec3f max = v;
+//	ofVec3f min = v;
+//	for (int i = 1; i < n; i++) {
+//		ofVec3f v = model.getMesh(0).getVertex(i);
+//
+//		if (v.x > max.x) max.x = v.x;
+//		else if (v.x < min.x) min.x = v.x;
+//
+//		if (v.y > max.y) max.y = v.y;
+//		else if (v.y < min.y) min.y = v.y;
+//
+//		if (v.z > max.z) max.z = v.z;
+//		else if (v.z < min.z) min.z = v.z;
+//	}
+//	
+//	for (int z = 1; z < model.getNumMeshes(); z++) {
+//		ofMesh currentMesh = model.getMesh(z);
+//		for (int i = 0; i < currentMesh.getNumVertices(); i++) {
+//			ofVec3f v = currentMesh.getVertex(i);
+//
+//			if (v.x > max.x) max.x = v.x;
+//			else if (v.x < min.x) min.x = v.x;
+//
+//			if (v.y > max.y) max.y = v.y;
+//			else if (v.y < min.y) min.y = v.y;
+//
+//			if (v.z > max.z) max.z = v.z;
+//			else if (v.z < min.z) min.z = v.z;
+//		}
+//	}
+//
+//	return Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+//
+//}
+
+
+
+
 void ofApp::drawBox(const Box &box) {
 	Vector3 min = box.parameters[0];
 	Vector3 max = box.parameters[1];
@@ -706,10 +784,10 @@ Vector3 ofApp::closestPt(Vector3 pt, vector<int> source)
 
 
 //Check for points of collission on the surface
-bool ofApp::ptCollide(TreeNode surfaceNode, Box landerBX, Vector3 ptRtn) {
+bool ofApp::ptCollide(TreeNode &surfaceNode, Box &landerBX, Vector3 & ptRtn) {
 	vector<int> insidePts;
 	for (int i = 0; i < surfaceNode.points.size(); i++) {
-		Vector3 curPt = Vector3(treeAl.mesh.getVertex(surfaceNode.points[i]).x, treeAl.mesh.getVertex(surfaceNode.points[i]).y, treeAl.mesh.getVertex(surfaceNode.points[i]).z);
+		Vector3 curPt = Vector3(-treeAl.mesh.getVertex(surfaceNode.points[i]).x, treeAl.mesh.getVertex(surfaceNode.points[i]).y, -treeAl.mesh.getVertex(surfaceNode.points[i]).z);
 		if (landerBX.inside(curPt)) {
 			insidePts.push_back(i);
 		}
