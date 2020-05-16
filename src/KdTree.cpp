@@ -207,7 +207,7 @@ void KdTree::subdivide(const ofMesh & mesh, TreeNode & node, int numLevels, int 
 
 TreeNode KdTree::findRayNode(const Ray &ray) {
 	TreeNode finalLeaf;
-	if (root.children[0].box.intersect(ray, 0, 500)) {
+	if (root.children[0].box.intersect(ray, 0, 100)) {
 		intersect(ray, root.children[0], finalLeaf);
 	}
 	else {
@@ -218,7 +218,7 @@ TreeNode KdTree::findRayNode(const Ray &ray) {
 
 void KdTree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn) {
 	//or statement due to possibility of only having 1 child
-	if (node.children[0].box.intersect(ray, 0, 500) ||node.children.size() == 1) {
+	if (node.children[0].box.intersect(ray, 0, 100) ||node.children.size() == 1) {
 		if (node.children[0].children.size() != 0) {
 			intersect(ray, node.children[0], nodeRtn);
 		}

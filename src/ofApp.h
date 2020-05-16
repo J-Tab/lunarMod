@@ -43,9 +43,13 @@ class ofApp : public ofBaseApp{
 		Vector3 closestPt(Vector3 pt,TreeNode source);
 		Vector3 closestPt(Vector3 pt, vector<int> source);
 		bool ptCollide(TreeNode &surfaceNode, Box &landerBX, Vector3 &ptRtn);
+		void randomLandingZone();
+		void randomLandingZoneFind(const TreeNode & node, TreeNode & nodeRtn);
 		Vector3 closePt;
 		KdTree treeAl;
 		float AGL;
+
+		string lastScore;
 		
 
 		//variable for the rotation of the lander around the y-axis
@@ -97,6 +101,9 @@ class ofApp : public ofBaseApp{
 		bool easyFunc = false;
 
 		bool easyTarget = false;
+
+		Box LandingBox;
+		Vector3 landingPoint;
 
 
 		glm::vec3 currentMouse;

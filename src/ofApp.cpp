@@ -20,6 +20,9 @@ void ofApp::setup() {
 	gui.setup();
 	gui.add(axisButton.setup("Axis Toggle", false));
 
+	landerParticle.position = ofVec3f(30, 30, 30);
+	
+	
 	ofSetFrameRate(60);
 	bWireframe = false;
 	bDisplayPoints = false;
@@ -111,7 +114,10 @@ void ofApp::setup() {
 	//treeAl.create(terrain.getMesh(0), 10);
 
 	//set to 17 for default
-	treeAl.create(terrain.getMesh(0), 12);
+	treeAl.create(terrain.getMesh(0), 17);
+
+
+	randomLandingZone();
 }
 
 
@@ -269,9 +275,25 @@ void ofApp::update() {
 		AGL = Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z).y() - closePt.y();
 	}
 
+
+	float landerToTarget = landerParticle.position.distance(ofVec3f(landingPoint.x(), landingPoint.y(), landingPoint.z()));
+	cout << landerToTarget << endl;
 	if (lunarLanded && !wKeyPressed) {
-		landerParticle.acceleration = ofVec3f(landerParticle.acceleration.x, -landerParticle.acceleration.y, landerParticle.acceleration.z) / 2;
-		landerParticle.velocity = ofVec3f(landerParticle.velocity.x, -landerParticle.velocity.y, landerParticle.velocity.z) / 2;
+		if (landerToTarget < 70) {
+			if (landerToTarget > 30 || landerParticle.velocity.length()>5) {
+				lastScore = "BAD LANDING";
+			}
+			else if (landerToTarget > 15 || landerParticle.velocity.length() > 2) {
+				lastScore = "OK LANDING";
+			}
+			else {
+				lastScore = "GREAT LANDING";
+			}
+		}
+
+
+		landerParticle.acceleration = ofVec3f(landerParticle.acceleration.x, -landerParticle.acceleration.y, landerParticle.acceleration.z) / 1.5;
+		landerParticle.velocity = ofVec3f(landerParticle.velocity.x, -landerParticle.velocity.y, landerParticle.velocity.z) / 1.5;
 
 
 
@@ -363,16 +385,27 @@ void ofApp::draw() {
 		drawAxisLander();
 		drawAxisHeader();
 	}
-
-	ofSetColor(ofColor::blue);
+	
+	//Draw Landing Area
+	
+	ofVec3f cylinder = ofVec3f(landingPoint.x(), landingPoint.y(), landingPoint.z());
+	ofSetColor(255, 0, 0, 100);
 	ofFill();
-	ofDrawSphere(ofVec3f(landerParticle.position.x, landerParticle.position.y - LANDER_SIZE, landerParticle.position.z),1);
-
+	ofDrawCylinder(cylinder, 8, 25);
+	ofSetColor(0,255,0,25);
+	ofFill();
+	ofDrawCylinder(cylinder,16,35);
+	ofSetColor(ofColor::blue);
+	ofDrawSphere(landerParticle.position, 2);
+	
+	ofDrawSphere(cylinder, 2);
+	
 	ofNoFill();
 	ofSetColor(ofColor::white);
 	drawBox(landerBounds);
 	drawBox(rayBox.box);
 	ofSetColor(ofColor::lightGray);
+
 	//treeAl.drawLeafNodes(treeAl.root);
 
 	//draw exhaust
@@ -398,6 +431,14 @@ void ofApp::draw() {
 	str2 += "Altitide (AGL): " + std::to_string(AGL);
 	ofSetColor(ofColor::white);
 	ofDrawBitmapString(str2, 5, 15);
+
+	if (!lastScore.empty()) {
+		string str3;
+		str3 += "Last Land: " + lastScore;
+		ofSetColor(ofColor::white);
+		ofDrawBitmapString(str3, 5, 40);
+	}
+	
 
 	
 }
@@ -909,3 +950,42 @@ bool ofApp::ptCollide(TreeNode &surfaceNode, Box &landerBX, Vector3 & ptRtn) {
 
 }
 
+
+//Choose a random landing zone
+void ofApp::randomLandingZone() {
+	int r = rand()%2;
+	TreeNode foundNode;
+	if (r == 0) {
+		randomLandingZoneFind(treeAl.root.children[0],foundNode);
+	}
+	else {
+		randomLandingZoneFind(treeAl.root.children[1],foundNode);
+	}
+	int randomPoint = rand()%(foundNode.points.size());
+	LandingBox = foundNode.box;
+	landingPoint = Vector3(treeAl.mesh.getVertex(foundNode.points[randomPoint]).x, treeAl.mesh.getVertex(foundNode.points[randomPoint]).y, treeAl.mesh.getVertex(foundNode.points[randomPoint]).z);
+	
+
+}
+
+void ofApp::randomLandingZoneFind (const TreeNode & node , TreeNode & nodeRtn) {
+	int r = rand() % 2;
+	if (r == 0 || node.children.size() ==1) {
+		if (node.children[0].children.size() != 0) {
+			randomLandingZoneFind(node.children[0], nodeRtn);
+		}
+		else {
+			LandingBox = node.children[0].box;
+			nodeRtn = node.children[0];
+		}
+	}
+	else {
+		if (node.children[1].children.size() != 0) {
+			randomLandingZoneFind(node.children[1], nodeRtn);
+		}
+		else {
+			LandingBox = node.children[1].box;
+			nodeRtn = node.children[1];
+		}
+	}
+}

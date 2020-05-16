@@ -30,7 +30,7 @@ class Vector3 {
     }
 
 	float distance(Vector3 vec) {
-		return sqrt((pow((d[0] - vec.d[0]), 2)+ pow((d[1] - vec.d[1]), 2)+ pow((d[2] - vec.d[2]), 2)));
+		return sqrt((pow((x() - vec.x()), 2)+ pow((y() - vec.y()), 2)+ pow((z() - vec.z()), 2)));
 	}
 
     /////////////////////////////////////////////////////////
