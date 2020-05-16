@@ -16,6 +16,9 @@
 //
 void ofApp::setup() {
 
+
+	shade.load("shaders/shader");
+
 	//debug GUI
 	gui.setup();
 	gui.add(axisButton.setup("Axis Toggle", false));
@@ -42,9 +45,13 @@ void ofApp::setup() {
 	easyCam.setTarget(easyCamParticle.position);
 
 	trackingCam.setNearClip(.1);
-	trackingCam.setFov(90);
+	trackingCam.setFov(65.5);
 	trackingCam.setPosition(2, 5, 2);
 	trackingCam.lookAt(landerParticle.position);
+
+	topCam.setFov(65.5);
+	topCam.setPosition(glm::vec3(landerParticle.position.x, landerParticle.position.y + 20, landerParticle.position.z));
+	topCam.lookAt(landerParticle.position);
 
 	
 	onboardCam.setFov(65.5);
@@ -116,6 +123,53 @@ void ofApp::setup() {
 	//set to 17 for default
 	treeAl.create(terrain.getMesh(0), 17);
 
+	//Light setup
+	keyLight.setup();
+	keyLight.enable();
+	keyLight.setAreaLight(.5, .5);
+	keyLight.setAmbientColor(ofFloatColor(1, 1, 1));
+	keyLight.setDiffuseColor(ofFloatColor(.5, .5, .5));
+	keyLight.setSpecularColor(ofFloatColor(.1, .1, .1));
+
+	keyLight.rotate(95, ofVec3f(0, 1, 0));
+	keyLight.rotate(-20, ofVec3f(1, 0, 0));
+	keyLight.setPosition(250, 100, 100);
+
+	fillLight.setup();
+	fillLight.enable();
+	fillLight.setSpotlight();
+	fillLight.setScale(.05);
+
+	fillLight.setSpotlightCutOff(15);
+
+	fillLight.setAmbientColor(ofFloatColor(1, 1, 1));
+	fillLight.setDiffuseColor(ofFloatColor(1, 1, 1));
+	fillLight.setSpecularColor(ofFloatColor(1, 1, 1));
+	fillLight.rotate(-45, ofVec3f(1, 0, 0));
+	fillLight.rotate(180+lightRot, ofVec3f(0, 1, 0));
+	fillLight.setPosition(landerParticle.position);
+
+	rimLight.setup();
+	rimLight.enable();
+	rimLight.setSpotlight();
+	rimLight.setScale(.05);
+	
+	rimLight.setSpotlightCutOff(15);
+	
+	rimLight.setAmbientColor(ofFloatColor(1, 1, 1));
+	rimLight.setDiffuseColor(ofFloatColor(1, 1, 1));
+	rimLight.setSpecularColor(ofFloatColor(1, 1, 1));
+	rimLight.rotate(-45, ofVec3f(1, 0, 0));
+	rimLight.rotate(lightRot, ofVec3f(0, 1, 0));
+	rimLight.setPosition(landerParticle.position);
+
+	//Plane
+	
+
+
+
+
+
 
 	randomLandingZone();
 }
@@ -132,7 +186,21 @@ void ofApp::update() {
 	//onboardCam.setTarget(landerParticle.position);
 	onboardCam.setPosition(landerParticle.position);
 
+	topCam.setPosition(glm::vec3(landerParticle.position.x, landerParticle.position.y + 20, landerParticle.position.z));
+	topCam.lookAt(landerParticle.position);
 	//EasyCam
+	
+	
+	if (timer % 2  == 0) {
+		rimLight.rotate(1, ofVec3f(0, 1, 0));
+		fillLight.rotate(1, ofVec3f(0, 1, 0));
+	}
+	
+	fillLight.setPosition(ofVec3f(landerParticle.position.x, landerParticle.position.y + 2, landerParticle.position.z));
+	rimLight.setPosition(ofVec3f(landerParticle.position.x,landerParticle.position.y +2,landerParticle.position.z));
+
+
+
 
 	if (numUp) {
 		easyCamParticle.position.z++;
@@ -167,7 +235,7 @@ void ofApp::update() {
 	ofVec3f turbVec = ofVec3f(0, 0, 0);
 	//W and S headings
 	if ((wKeyPressed && sKeyPressed) || (!wKeyPressed && !sKeyPressed)) {
-		tempVec.y = -.1;
+		tempVec.y = -.5;
 	}
 	else if (wKeyPressed) {
 		tempVec.y = 5.0;
@@ -251,7 +319,7 @@ void ofApp::update() {
 		
 	//Ray collision for altitude
 
-	rayBox = treeAl.findRayNode(Ray(Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z), Vector3(landerParticle.position.x, landerParticle.position.y-LANDER_SIZE*100, landerParticle.position.z)));
+	rayBox = treeAl.findRayNode(Ray(Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z), Vector3(landerParticle.position.x, landerParticle.position.y-LANDER_SIZE*1000, landerParticle.position.z)));
 	bottomKdBox1 = treeAl.findRayNode(Ray(Vector3(landerParticle.position.x - LANDER_SIZE, landerParticle.position.y, landerParticle.position.z - LANDER_SIZE), Vector3(landerParticle.position.x - LANDER_SIZE, landerParticle.position.y-LANDER_SIZE, landerParticle.position.z - LANDER_SIZE)));
 	bottomKdBox2 = treeAl.findRayNode(Ray(Vector3(landerParticle.position.x + LANDER_SIZE, landerParticle.position.y, landerParticle.position.z + LANDER_SIZE), Vector3(landerParticle.position.x + LANDER_SIZE, landerParticle.position.y-LANDER_SIZE, landerParticle.position.z + LANDER_SIZE)));
 	closePt = closestPt(Vector3(landerParticle.position.x, landerParticle.position.y, landerParticle.position.z), rayBox);
@@ -276,19 +344,31 @@ void ofApp::update() {
 	}
 
 
-	float landerToTarget = landerParticle.position.distance(ofVec3f(landingPoint.x(), landingPoint.y(), landingPoint.z()));
-	cout << landerToTarget << endl;
+	landerToTarget = landerParticle.position.distance(ofVec3f(landingPoint.x(), landingPoint.y(), landingPoint.z()));
 	if (lunarLanded && !wKeyPressed) {
 		if (landerToTarget < 70) {
-			if (landerToTarget > 30 || landerParticle.velocity.length()>5) {
-				lastScore = "BAD LANDING";
+			if (landerToTarget > 30 || landerParticle.velocity.length()>4) {
+				lastScore = "BAD LANDING || ";
+				if (landerToTarget > 30) {
+					lastScore = lastScore + "Too far from center!";
+				}
+				else {
+					lastScore = lastScore + "Crash landing!";
+				}
 			}
 			else if (landerToTarget > 15 || landerParticle.velocity.length() > 2) {
-				lastScore = "OK LANDING";
+				lastScore = "OK LANDING || ";
+				if (landerToTarget > 15) {
+					lastScore = lastScore + "Get a little closer to center!";
+				}
+				else {
+					lastScore = lastScore + "Hard landing!";
+				}
 			}
 			else {
-				lastScore = "GREAT LANDING";
+				lastScore = "EXCELLENT LANDING";
 			}
+			randomLandingZone();
 		}
 
 
@@ -321,7 +401,7 @@ void ofApp::update() {
 //--------------------------------------------------------------
 void ofApp::draw() {
 
-
+	
 	// draw background image
 	//
 	if (bBackgroundLoaded) {
@@ -337,6 +417,11 @@ void ofApp::draw() {
 	theCam->begin();
 
 	ofPushMatrix();
+
+	keyLight.draw();
+	fillLight.draw();
+	rimLight.draw();
+
 
 		// draw a reference grid
 		//
@@ -391,12 +476,12 @@ void ofApp::draw() {
 	ofVec3f cylinder = ofVec3f(landingPoint.x(), landingPoint.y(), landingPoint.z());
 	ofSetColor(255, 0, 0, 100);
 	ofFill();
-	ofDrawCylinder(cylinder, 8, 25);
+	ofDrawCylinder(cylinder, 8, 50);
 	ofSetColor(0,255,0,25);
 	ofFill();
-	ofDrawCylinder(cylinder,16,35);
+	ofDrawCylinder(cylinder,16,80);
 	ofSetColor(ofColor::blue);
-	ofDrawSphere(landerParticle.position, 2);
+	//ofDrawSphere(landerParticle.position, 2);
 	
 	ofDrawSphere(cylinder, 2);
 	
@@ -410,13 +495,15 @@ void ofApp::draw() {
 
 	//draw exhaust
 
+	shade.begin();
+	shade.setUniform4f("landerHeight", landerParticle.position.y);
 	ofDisableLighting();
 	yThruster.draw();
 	fwdThruster.draw();
 	bckThruster.draw();
 	leftThruster.draw();
 	rightThruster.draw();
-
+	shade.end();
 
 	theCam->end();
 
@@ -428,18 +515,19 @@ void ofApp::draw() {
 	ofDrawBitmapString(str, ofGetWindowWidth() - 170, 15);
 
 	string str2;
-	str2 += "Altitide (AGL): " + std::to_string(AGL);
+	str2 += "Altitide (AGL): " + std::to_string(AGL) +"  || Distance to Target: " + std::to_string(landerToTarget) + "  || Velocity: " + std::to_string(landerParticle.velocity.length());
 	ofSetColor(ofColor::white);
 	ofDrawBitmapString(str2, 5, 15);
 
 	if (!lastScore.empty()) {
 		string str3;
-		str3 += "Last Land: " + lastScore;
+		str3 += "Last Land: " + lastScore + "  || Time to land: " + std::to_string(timer -lastLandTime) ;
+		lastLandTime = timer;
 		ofSetColor(ofColor::white);
 		ofDrawBitmapString(str3, 5, 40);
 	}
 	
-
+	
 	
 }
 
@@ -604,6 +692,9 @@ void ofApp::keyPressed(int key) {
 	case OF_KEY_F4:
 		theCam = &onboardCam;
 		easyFunc = false;
+		break;
+	case OF_KEY_F5:
+		theCam = &topCam;
 		break;
 	case OF_KEY_ALT:
 		cam.enableMouseInput();

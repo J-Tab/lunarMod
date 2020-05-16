@@ -54,12 +54,13 @@ class ofApp : public ofBaseApp{
 
 		//variable for the rotation of the lander around the y-axis
 		float yRotationAngle = 0;
-		float headingAcceleration = 3.0;
+		float headingAcceleration = 5.0;
 
 		//heading vector for lander
 		ofVec3f heading = ofVec3f(0,0,0);
 		ofVec3f headingRot = heading;
 		int timer = 0;
+		int lastLandTime = 0;
 		
 		ofEasyCam cam;
 		ofxAssimpModelLoader lander, terrain;
@@ -105,6 +106,8 @@ class ofApp : public ofBaseApp{
 		Box LandingBox;
 		Vector3 landingPoint;
 
+		float landerToTarget;
+
 
 		glm::vec3 currentMouse;
 		glm::vec3 lastMouse;
@@ -134,4 +137,12 @@ class ofApp : public ofBaseApp{
 		ofxPanel gui;
 		ofxToggle axisButton;
 		bool debugEnable = false;
+
+		//lights
+		ofLight keyLight, fillLight, rimLight;
+		ofPlanePrimitive plane;
+		ofMaterial planeMaterial;
+		int lightRot = 180;
+
+		ofShader shade;
 };

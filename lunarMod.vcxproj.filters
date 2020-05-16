@@ -323,4 +323,8 @@
       <Filter>src</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\data\shaders\shader.frag" />
+    <None Include="bin\data\shaders\shader.vert" />
+  </ItemGroup>
 </Project>
