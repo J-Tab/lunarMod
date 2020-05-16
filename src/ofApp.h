@@ -75,6 +75,7 @@ class ofApp : public ofBaseApp{
 		ofImage backgroundImage;
 		ofCamera *theCam = NULL;
 		ofCamera topCam;
+		ofCamera trackingCam;
 
 		//buttons hits
 		bool upPressed = false;

@@ -37,6 +37,11 @@ void ofApp::setup() {
 	topCam.setPosition(0, 15, 0);
 	topCam.lookAt(glm::vec3(0, 0, 0));
 
+	trackingCam.setNearClip(.1);
+	trackingCam.setFov(65.5);
+	trackingCam.setPosition(2, 5, 2);
+	trackingCam.lookAt(landerParticle.position);
+
 	// set current camera;
 	//
 	theCam = &cam;
@@ -103,7 +108,8 @@ int LANDER_SIZE = 1.9;
 void ofApp::update() {
 	timer++;
 
-	
+	//Camera
+	trackingCam.lookAt(landerParticle.position);
 	//Heading depending on arrow keys
 	ofVec3f tempVec = ofVec3f(0, 0, 0);
 	ofVec3f turbVec = ofVec3f(0, 0, 0);
@@ -473,6 +479,9 @@ void ofApp::keyPressed(int key) {
 		break;
 	case OF_KEY_F1:
 		theCam = &cam;
+		break;
+	case OF_KEY_F2:
+		theCam = &trackingCam;
 		break;
 	case OF_KEY_F3:
 		theCam = &topCam;
