@@ -76,6 +76,9 @@ class ofApp : public ofBaseApp{
 		ofCamera *theCam = NULL;
 		ofCamera topCam;
 		ofCamera trackingCam;
+		ofEasyCam onboardCam;
+		ofEasyCam easyCam;
+		Particle easyCamParticle = Particle();
 
 		//buttons hits
 		bool upPressed = false;
@@ -85,6 +88,20 @@ class ofApp : public ofBaseApp{
 		bool wKeyPressed = false;
 		bool sKeyPressed = false;
 
+		bool numLeft = false;
+		bool numRight = false;
+		bool numUp = false;
+		bool numDown = false;
+		bool numPGup = false;
+		bool numPGdown = false;
+		bool easyFunc = false;
+
+		bool easyTarget = false;
+
+
+		glm::vec3 currentMouse;
+		glm::vec3 lastMouse;
+		bool bDrag = false;
 
 		//emitters attached to the lander
 		ParticleEmitter yThruster = ParticleEmitter();

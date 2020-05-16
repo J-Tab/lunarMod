@@ -32,15 +32,28 @@ void ofApp::setup() {
 	cam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
 	cam.disableMouseInput();
 
-	topCam.setNearClip(.1);
-	topCam.setFov(65.5);
-	topCam.setPosition(0, 15, 0);
-	topCam.lookAt(glm::vec3(0, 0, 0));
+	easyCam.setNearClip(.01);
+	easyCam.setFov(65.5);
+	easyCamParticle.position = ofVec3f(0, 0, 0);
+	easyCam.setPosition(easyCamParticle.position);
+	easyCam.setTarget(easyCamParticle.position);
 
 	trackingCam.setNearClip(.1);
-	trackingCam.setFov(65.5);
+	trackingCam.setFov(90);
 	trackingCam.setPosition(2, 5, 2);
 	trackingCam.lookAt(landerParticle.position);
+
+	
+	onboardCam.setFov(65.5);
+	onboardCam.setPosition(glm::vec3(landerParticle.position.x,landerParticle.position.y+2,landerParticle.position.z));
+
+
+	cam.setDistance(10);
+	cam.setNearClip(.1);
+	cam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
+	cam.disableMouseInput();
+
+
 
 	// set current camera;
 	//
@@ -110,6 +123,39 @@ void ofApp::update() {
 
 	//Camera
 	trackingCam.lookAt(landerParticle.position);
+	//onboardCam.setTarget(landerParticle.position);
+	onboardCam.setPosition(landerParticle.position);
+
+	//EasyCam
+
+	if (numUp) {
+		easyCamParticle.position.z++;
+
+	}
+	if (numDown) {
+		easyCamParticle.position.z--;
+	}
+	if (numRight) {
+		easyCamParticle.position.x++;
+	}
+	if (numLeft) {
+		easyCamParticle.position.x--;
+	}
+	if (numPGdown) {
+		easyCamParticle.position.y--;
+	}
+	if (numPGup) {
+		easyCamParticle.position.y++;
+	}
+	if (easyTarget) {
+		easyCam.setTarget(landerParticle.position);
+	}
+	else {
+	easyCam.setTarget(easyCamParticle.position);
+	}
+	
+	easyCam.setPosition(easyCamParticle.position);
+
 	//Heading depending on arrow keys
 	ofVec3f tempVec = ofVec3f(0, 0, 0);
 	ofVec3f turbVec = ofVec3f(0, 0, 0);
@@ -477,14 +523,46 @@ void ofApp::keyPressed(int key) {
 	case 's':     // spacefraft thrust DOWN
 		sKeyPressed = true;
 		break;
+
+	case '4':
+		numLeft = true;
+		break;
+	case '8':
+		numUp = true;
+		break;
+	case '2':
+		numDown = true;
+		break;
+	case '6':
+		numRight = true;
+		break;
+	case '9':
+		numPGup = true;
+		break;
+	case '3':
+		numPGdown = true;
+		break;
+	case '7':
+		easyTarget = true;
+		break;
+	case '1':
+		easyTarget = false;
+		break;
 	case OF_KEY_F1:
 		theCam = &cam;
+		easyFunc = false;
 		break;
 	case OF_KEY_F2:
 		theCam = &trackingCam;
+		easyFunc = false;
 		break;
 	case OF_KEY_F3:
-		theCam = &topCam;
+		theCam = &easyCam;
+		easyFunc = true;
+		break;
+	case OF_KEY_F4:
+		theCam = &onboardCam;
+		easyFunc = false;
 		break;
 	case OF_KEY_ALT:
 		cam.enableMouseInput();
@@ -569,6 +647,24 @@ void ofApp::keyReleased(int key) {
 		break;
 	case OF_KEY_SHIFT:
 		break;
+	case '4':
+		numLeft = false;
+		break;
+	case '8':
+		numUp = false;
+		break;
+	case '2':
+		numDown = false;
+		break;
+	case '6':
+		numRight = false;
+		break;
+	case '9':
+		numPGup = false;
+		break;
+	case '3':
+		numPGdown = false;
+		break;
 	default:
 		break;
 
@@ -584,19 +680,20 @@ void ofApp::mouseMoved(int x, int y ){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button) {
-
+	bDrag = true;
 
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button) {
-
-
+	if (!bDrag) return;
+	lastMouse = currentMouse;
+	currentMouse = glm::vec3(x, y, 0);
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button) {
-
+	bDrag = false;
 }
 
 
@@ -811,3 +908,4 @@ bool ofApp::ptCollide(TreeNode &surfaceNode, Box &landerBX, Vector3 & ptRtn) {
 	}
 
 }
+
